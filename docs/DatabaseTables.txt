@@ -1,0 +1,25 @@
+Created as follows: -
+
+sqlite> CREATE TABLE five_minute_data (
+   ...> time DATETIME, total_power_kWh FLOAT, power_kW FLOAT, powerkWh FLOAT
+   ...> );
+sqlite> CREATE TABLE day_data (
+   ...> date DATE, total_power_kWh FLOAT, power_kWh FLOAT
+   ...> );
+sqlite> CREATE TABLE month_data (
+   ...> date DATE, total_power_kWh FLOAT, power_kWh FLOAT
+   ...> );
+sqlite> CREATE TABLE year_data (
+   ...> date DATE, total_power_kWh FLOAT, power_kWh FLOAT
+   ...> );
+
+
+five_minute_data.power_kW
+ - instantaneous power generated in these 5 minutes 
+   (for kWh divide by 12 - there are 12 5 minute intervals in one hour)
+*.total_power_kWh
+ - total kWh generated up til now
+*.power_kWh
+ - number of kWh generated so far
+
+
