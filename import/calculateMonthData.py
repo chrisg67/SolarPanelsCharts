@@ -7,20 +7,21 @@ def main():
   for year in range (2011, 2014):
     for month in range (1, 13):
       if ( not (year == 2011 and month < 11) ):
-        date  = "%d-%02d-%02d" % (year, month, day)
-        where = "WHERE date = '" + date + "';"
+        date  = "'%d-%02d-01'" % (year, month)
+        where = "WHERE date BETWEEN " + date + \
+                " AND date("+date+",'+1 month', '-1 day');"
         sumd = "SELECT SUM(power_kWh) FROM day_data " + where
         maxd = "SELECT MAX(total_power_kWh) FROM day_data " + where
         count = "SELECT COUNT(power_kWh) FROM day_data " + where
         c.execute(count)
         countv = c.fetchone()[0]
-        if ( countv >= 288 ):
-          # Complete day
+        if ( countv > 0 ):
+          # Complete Month
           c.execute(sumd)
           sumv = c.fetchone()[0]
           c.execute(maxd)
           maxv = c.fetchone()[0]
-          insert = "INSERT INTO day_data VALUES ('"+date+"', "+str(maxv)+", "+str(sumv)+");"
+          insert = "INSERT INTO day_data VALUES ("+date+", "+str(maxv)+", "+str(sumv)+");"
           print insert
           #conn.execute(insert)
   conn.commit()
