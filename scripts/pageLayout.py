@@ -17,6 +17,26 @@ class WebPage:
   def addSideNav(self, name, link, title, span):
     self.side_navs.append({'name':name, 'link':link, 'title':title, 'span':span})
 
+  def addStandardSideNav(self, c, date, sb_type="month"):
+    if "day" in sb_type:
+      for d in range(-2,3):
+        day = c.execute("SELECT date('" + date + "', '" + str(d) + " days');").fetchone()[0]
+        power = c.execute("SELECT power_kWh FROM day_data WHERE date = '"+day+"';").fetchone()
+        if power: 
+          # We have some data for this day
+          self.addSideNav(day+" ("+str(round(power[0], 3))+")", day+".html", "Results for "+day, "Daily Report for "+day)
+
+    if "month" in sb_type:
+      month = date[:7]+'-01'
+      for m in range(-2, 3):
+        mnth = c.execute("SELECT date('" + month + "', '" + str(m) + " months');").fetchone()[0]
+        power = c.execute("SELECT power_kWh FROM month_data WHERE date = '"+mnth+"';").fetchone()
+        if power: 
+          # We have some data for this month
+          mnth = mnth[:7]
+          self.addSideNav(mnth+" ("+str(round(power[0], 3))+")", mnth+".html", "Results for "+mnth, "Monthly Report for "+mnth)
+    
+
   def writeHeader(self):
     self.f.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n')
     self.f.write('\n')
@@ -75,10 +95,8 @@ class WebPage:
   def writeDayGraph(self, c, day):
     cmd = "SELECT power_kWh " + \
           "FROM day_data " + \
-          "WHERE date == '"+day+"';"
-    print cmd
+          "WHERE date = '"+day+"';"
     total = c.execute(cmd).fetchone()[0]
-    print total
 
     self.f.write('          <p>'+str(round(total,3))+'KWh</p>\n')
     self.f.write('<script type="text/javascript" src="https://www.google.com/jsapi"></script>\n')
@@ -91,17 +109,18 @@ class WebPage:
     self.f.write('    data.addColumn(\'number\', \'KW\');\n')
     self.f.write('    data.addColumn(\'number\', \'KWh\');\n')
     self.f.write('    data.addRows([\n')
-    cmd = "SELECT time,power_kWh " + \
+    cmd = "SELECT time,power_kW,power_kWh " + \
           "FROM five_minute_data " + \
           "WHERE time BETWEEN '"+day+" 00:00:00' AND '"+day+" 23:55:00';"
+    i = 0
     total = 0.0
     for v in c.execute(cmd):
-      total = total + v[1]
-      self.writeDayValue(v, tot)
-      if v[0][11:16] == '23:55':
-        self.f.write('\n')
-      else:
+      if i > 0:
         self.f.write(',\n')
+      i = i + 1
+      total = total + v[2]
+      self.writeDayValue(v, total)
+
     self.f.write('    ]);\n')
     self.f.write('\n')
     self.f.write('    // Create and draw the visualization.\n')
@@ -109,7 +128,7 @@ class WebPage:
     self.f.write('        draw(data, {vAxes: {0: {maxValue: 4},\n')
     self.f.write('                            1: {maxValue: 30}},\n')
     self.f.write('                    hAxis: {viewWindowMode: \'pretty\',\n')
-    self.f.write('                            maxValue: new Date('+time.strftime('%Y,%m-1,%d', vals[0][0])+',23,59,00)},\n')
+    self.f.write('                            maxValue: new Date('+day[0:4]+','+str(int(day[5:7])-1)+','+day[8:10]+',23,59,00)},\n')
     self.f.write('                    series: {0:{targetAxisIndex:0},\n')
     self.f.write('                             1:{targetAxisIndex:1}}\n')
     self.f.write('                   }\n')
@@ -124,9 +143,16 @@ class WebPage:
 
   def writeDayValue(self, val, tot):
     d = val[0]
-    self.f.write('      [new Date('+d[0:4]+','+d[5:7]+','+d[8:10]+','+d[11:13]+','+d[14:16]+','+d[17:19]+'), ' + str(round(val[1],3))+', '+str(round(tot,3))+']')
+    self.f.write('      [new Date('+d[0:4]+','+str(int(d[5:7])-1)+','+d[8:10]+','+d[11:13]+','+d[14:16]+','+d[17:19]+'), ' + str(round(val[1],3))+', '+str(round(tot,3))+']')
 
-  def writeMonthGraph(self, vals):
+  def writeMonthGraph(self, c, month):
+    month = month[:7]+'-01';
+    cmd = "SELECT power_kWh " + \
+          "FROM month_data " + \
+          "WHERE date = '"+month+"';"
+    total = c.execute(cmd).fetchone()[0]
+
+    self.f.write('          <p>'+str(round(total,3))+'KWh</p>\n')
     self.f.write('<script type="text/javascript" src="https://www.google.com/jsapi"></script>\n')
     self.f.write('<script type="text/javascript">\n')
     self.f.write('  google.load("visualization", "1", {packages:["corechart"]});\n')
@@ -139,14 +165,20 @@ class WebPage:
     self.f.write('    data.addColumn(\'number\', \'KWh\');\n')
     self.f.write('    data.addRows([\n')
 
+    endMonth = c.execute("SELECT date('"+month+"', '+1 month', '-1 day');").fetchone()[0];
+    lastDay = c.execute("SELECT MAX(date) FROM day_data;").fetchone()[0];
+    cmd = "SELECT date,power_kWh " + \
+          "FROM day_data " + \
+          "WHERE date BETWEEN '"+month+"' AND '"+endMonth+"';"
     i = 0
-    tot = 0.0
-    for v in vals:
+    total = 0.0
+    for v in c.execute(cmd):
       if i != 0:
         self.f.write(',\n')
       i = i + 1
-      tot = tot + float(v[2])
-      self.writeMonthValue(v, tot / i)
+      total = total + v[1]
+      self.writeMonthValue(v, total / i)
+
     self.f.write('    ]);\n')
     self.f.write('\n')
     self.f.write('    var options = {\n')
@@ -167,7 +199,7 @@ class WebPage:
     self.f.write('      </div>\n')
 
   def writeMonthValue(self, val, av):
-    self.f.write('      [\''+time.strftime('%d', val[0])+'\', '+str(round(av,3))+', '+str(round(val[2],3))+']')
+    self.f.write('      [\''+val[0][8:]+'\', '+str(round(av,3))+', '+str(round(val[1],3))+']')
 
 
   def writeSideNavs(self):
