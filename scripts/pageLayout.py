@@ -159,13 +159,14 @@ class WebPage:
     self.f.write('  google.setOnLoadCallback(drawChart);\n')
     self.f.write('  function drawChart() {\n')
     self.f.write('    var data = new google.visualization.DataTable();\n')
-    self.f.write('    data.addColumn(\'string\', \'Day\');\n')
+    self.f.write('    data.addColumn(\'date\', \'Day\');\n')
     #self.f.write('    data.addColumn(\'number\', \'Estimate\');\n')
     self.f.write('    data.addColumn(\'number\', \'Average\');\n')
     self.f.write('    data.addColumn(\'number\', \'KWh\');\n')
     self.f.write('    data.addRows([\n')
 
-    endMonth = c.execute("SELECT date('"+month+"', '+1 month', '-1 day');").fetchone()[0];
+    nextMonth = c.execute("SELECT date('"+month+"', '+1 month');").fetchone()[0]
+    endMonth = c.execute("SELECT date('"+nextMonth+"', '-1 day');").fetchone()[0];
     lastDay = c.execute("SELECT MAX(date) FROM day_data;").fetchone()[0];
     cmd = "SELECT date,power_kWh " + \
           "FROM day_data " + \
@@ -184,7 +185,10 @@ class WebPage:
     self.f.write('    var options = {\n')
     self.f.write('      title: \'Solar Panel Output\',\n')
     self.f.write('      vAxis: {title:"KWh", viewWindowMode: \'explicit\', viewWindow:{max:30, min:0}},\n')
-    self.f.write('      seriesType:"bars",\n')
+    self.f.write('      hAxis: {viewWindowMode: \'explicit\',\n')
+    self.f.write('              viewWindow: { max: new Date('+nextMonth[0:4]+','+str(int(nextMonth[5:7])-1)+','+nextMonth[8:10]+') }\n')
+    self.f.write('             },\n')
+    self.f.write('      seriesType:"bars"\n')
     #self.f.write('      series: { 0: {type: "line"} }\n')
     self.f.write('    };\n')
     self.f.write('\n')
@@ -199,7 +203,7 @@ class WebPage:
     self.f.write('      </div>\n')
 
   def writeMonthValue(self, val, av):
-    self.f.write('      [\''+val[0][8:]+'\', '+str(round(av,3))+', '+str(round(val[1],3))+']')
+    self.f.write('      [ new Date('+val[0][0:4]+','+str(int(val[0][5:7])-1)+','+val[0][8:10]+'), '+str(round(av,3))+', '+str(round(val[1],3))+']')
 
 
   def writeSideNavs(self):
