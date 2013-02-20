@@ -1,0 +1,3 @@
+A simple HTML page rendering suite which takes data from a database
+and draws graphs of the solar panel data using the google chart API.
+
