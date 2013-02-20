@@ -35,6 +35,16 @@ class WebPage:
           # We have some data for this month
           mnth = mnth[:7]
           self.addSideNav(mnth+" ("+str(round(power[0], 3))+")", mnth+".html", "Results for "+mnth, "Monthly Report for "+mnth)
+
+    if "year" in sb_type:
+      year = date[:4]+'-01-01'
+      for y in range(-2, 3):
+        yr = c.execute("SELECT date('" + year + "', '" + str(y) + " years');").fetchone()[0]
+        power = c.execute("SELECT power_kWh FROM year_data WHERE date = '"+yr+"';").fetchone()
+        if power: 
+          # We have some data for this month
+          yr = yr[:4]
+          self.addSideNav(yr+" ("+str(round(power[0], 3))+")", yr+".html", "Results for "+yr, "Yearly Report for "+yr)
     
 
   def writeHeader(self):
@@ -204,6 +214,62 @@ class WebPage:
 
   def writeMonthValue(self, val, av):
     self.f.write('      [ new Date('+val[0][0:4]+','+str(int(val[0][5:7])-1)+','+val[0][8:10]+'), '+str(round(av,3))+', '+str(round(val[1],3))+']')
+
+  def writeYearGraph(self, c, year):
+    year = year[:4]+'-01-01';
+    cmd = "SELECT power_kWh " + \
+          "FROM year_data " + \
+          "WHERE date = '"+year+"';"
+    total = c.execute(cmd).fetchone()[0]
+
+    self.f.write('          <p>'+str(round(total,3))+'KWh</p>\n')
+    self.f.write('<script type="text/javascript" src="https://www.google.com/jsapi"></script>\n')
+    self.f.write('<script type="text/javascript">\n')
+    self.f.write('  google.load("visualization", "1", {packages:["corechart"]});\n')
+    self.f.write('  google.setOnLoadCallback(drawChart);\n')
+    self.f.write('  function drawChart() {\n')
+    self.f.write('    var data = new google.visualization.DataTable();\n')
+    self.f.write('    data.addColumn(\'date\', \'Day\');\n')
+    self.f.write('    data.addColumn(\'number\', \'KWh\');\n')
+    self.f.write('    data.addRows([\n')
+
+    nextYear = c.execute("SELECT date('"+year+"', '+1 year');").fetchone()[0]
+    endYear = c.execute("SELECT date('"+nextYear+"', '-1 day');").fetchone()[0];
+    lastDay = c.execute("SELECT MAX(date) FROM day_data;").fetchone()[0];
+    cmd = "SELECT date,power_kWh " + \
+          "FROM day_data " + \
+          "WHERE date BETWEEN '"+year+"' AND '"+endYear+"';"
+    i = 0
+    for v in c.execute(cmd):
+      if i != 0:
+        self.f.write(',\n')
+      i = i + 1
+      self.writeYearValue(v)
+
+    self.f.write('    ]);\n')
+    self.f.write('\n')
+    self.f.write('    var options = {\n')
+    self.f.write('      title: \'Solar Panel Output\',\n')
+    self.f.write('      vAxis: {title:"KWh", viewWindowMode: \'explicit\', viewWindow:{max:30, min:0}},\n')
+    self.f.write('      hAxis: {viewWindowMode: \'explicit\',\n')
+    self.f.write('              viewWindow: { max: new Date('+nextYear[0:4]+','+str(int(nextYear[5:7])-1)+','+nextYear[8:10]+') }\n')
+    self.f.write('             },\n')
+    self.f.write('      seriesType:"bars"\n')
+    #self.f.write('      series: { 0: {type: "line"} }\n')
+    self.f.write('    };\n')
+    self.f.write('\n')
+    self.f.write('    var chart = new google.visualization.ComboChart(document.getElementById(\'chart_div\'));\n')
+    self.f.write('    chart.draw(data, options);\n')
+    self.f.write('  }\n')
+    self.f.write('\n')
+    self.f.write('</script>\n')
+    self.f.write('<div id="chart_div" style="width: 100%; height: 500px; position: relative; "></div>\n')
+    self.f.write('\n')
+    self.f.write('        </div>\n')
+    self.f.write('      </div>\n')
+
+  def writeYearValue(self, val):
+    self.f.write('      [ new Date('+val[0][0:4]+','+str(int(val[0][5:7])-1)+','+val[0][8:10]+'), '+str(round(val[1],3))+']')
 
 
   def writeSideNavs(self):
