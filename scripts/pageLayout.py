@@ -178,9 +178,8 @@ class WebPage:
     nextMonth = c.execute("SELECT date('"+month+"', '+1 month');").fetchone()[0]
     endMonth = c.execute("SELECT date('"+nextMonth+"', '-1 day');").fetchone()[0];
     lastDay = c.execute("SELECT MAX(date) FROM day_data;").fetchone()[0];
-    cmd = "SELECT date,power_kWh " + \
-          "FROM day_data " + \
-          "WHERE date BETWEEN '"+month+"' AND '"+endMonth+"';"
+    where = "WHERE date BETWEEN '"+month+"' AND '"+endMonth+"'"
+    cmd = "SELECT date,power_kWh FROM day_data " + where + ";"
     i = 0
     total = 0.0
     for v in c.execute(cmd):
@@ -209,6 +208,34 @@ class WebPage:
     self.f.write('</script>\n')
     self.f.write('<div id="chart_div" style="width: 100%; height: 500px; position: relative; "></div>\n')
     self.f.write('\n')
+    self.f.write('        <table>\n')
+    self.f.write('          <tr>\n')
+    for v in c.execute(cmd):
+      d = v[0][0:10]
+      self.f.write('            <td><a href="' + d + '.html">' + d[8:10] + '</a></td>\n')
+    self.f.write('          </tr>\n')
+    self.f.write('        </table>\n')
+    self.f.write('        <table style="border:1px solid black;">\n')
+    self.f.write('          <tr><td><b>Stat</b></td><td><b>What</b></td><td><b>When</b></td></tr>\n')
+    cmd = "SELECT avg(power_kWh) FROM day_data " + where + ";"
+    v = c.execute(cmd).fetchone()
+    self.f.write('          <tr><td>Average Day</td><td>' + 
+                 str(round(v[0],3)) +
+                 '</td><td></td></tr>\n')
+    cmd = "SELECT max(power_kWh) FROM day_data " + where
+    cmd2 = 'SELECT date,power_kWh from day_data WHERE power_kWh = (' + cmd + ');'
+    v = c.execute(cmd2).fetchone()
+    self.f.write('          <tr><td>Max Day</td>' + 
+                 '<td>' + str(round(v[1],3)) + '</td>' +
+                 '<td><a href="' + v[0] + '.html">' + v[0] + '</a></td></tr>\n')
+    cmd = "SELECT min(power_kWh) FROM day_data " + where
+    cmd2 = 'SELECT date,power_kWh from day_data WHERE power_kWh = (' + cmd + ');'
+    v = c.execute(cmd2).fetchone()
+    self.f.write('          <tr><td>Min Day</td>' + 
+                 '<td>' + str(round(v[1],3)) + '</td>' +
+                 '<td><a href="' + v[0] + '.html">' + v[0] + '</a></td></tr>\n')
+    self.f.write('          </tr>\n')
+    self.f.write('        </table>\n')
     self.f.write('        </div>\n')
     self.f.write('      </div>\n')
 
