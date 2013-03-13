@@ -2,7 +2,7 @@ import sqlite3
 import sys
 
 def main():
-  conn = sqlite3.connect('test.db')
+  conn = sqlite3.connect('..\\dB\\test.db')
   c = conn.cursor()
   for year in range (2011, 2014):
     for month in range (1, 13):
@@ -21,9 +21,9 @@ def main():
           sumv = c.fetchone()[0]
           c.execute(maxd)
           maxv = c.fetchone()[0]
-          insert = "INSERT INTO day_data VALUES ("+date+", "+str(maxv)+", "+str(sumv)+");"
+          insert = "INSERT INTO month_data VALUES ("+date+", "+str(maxv)+", "+str(sumv)+", 1);"
           print insert
-          #conn.execute(insert)
+          conn.execute(insert)
   conn.commit()
   conn.close()
 

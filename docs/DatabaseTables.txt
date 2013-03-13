@@ -1,17 +1,17 @@
 Created as follows: -
 
-sqlite> CREATE TABLE five_minute_data (
-   ...> time DATETIME, total_power_kWh FLOAT, power_kW FLOAT, powerkWh FLOAT
-   ...> );
-sqlite> CREATE TABLE day_data (
-   ...> date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER
-   ...> );
-sqlite> CREATE TABLE month_data (
-   ...> date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER
-   ...> );
-sqlite> CREATE TABLE year_data (
-   ...> date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER
-   ...> );
+CREATE TABLE five_minute_data (
+time DATETIME, total_power_kWh FLOAT, power_kW FLOAT, power_kWh FLOAT,
+PRIMARY KEY(time));
+CREATE TABLE day_data (
+date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER,
+PRIMARY KEY(date));
+CREATE TABLE month_data (
+date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER,
+PRIMARY KEY(date));
+CREATE TABLE year_data (
+date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER,
+PRIMARY KEY(date));
 
 
 five_minute_data.power_kW

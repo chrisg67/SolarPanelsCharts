@@ -2,7 +2,7 @@ import sqlite3
 import sys
 
 def main():
-  conn = sqlite3.connect('test.db')
+  conn = sqlite3.connect('..\\dB\\test.db')
   c = conn.cursor()
   for year in range (2011, 2014):
     for month in range (1, 13):
@@ -16,14 +16,17 @@ def main():
           count = "SELECT COUNT(power_kWh) FROM five_minute_data " + where
           c.execute(count)
           countv = c.fetchone()[0]
-          if ( countv >= 288 ):
+          if ( countv >= 200 ):
             # Complete day
             c.execute(sumd)
             sumv = c.fetchone()[0]
             c.execute(maxd)
             maxv = c.fetchone()[0]
-            insert = "INSERT INTO day_data VALUES ('"+date+"', "+str(maxv)+", "+str(sumv)+");"
+            insert = "INSERT INTO day_data VALUES ('"+date+"', "+str(maxv)+", "+str(sumv)+", 1);"
+            print insert
             conn.execute(insert)
+          else:
+            print "incomplete day %s (%d)" % (date, countv)
   conn.commit()
   conn.close()
 
