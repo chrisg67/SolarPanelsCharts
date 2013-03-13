@@ -212,7 +212,10 @@ class WebPage:
     self.f.write('          <tr>\n')
     for v in c.execute(cmd):
       d = v[0][0:10]
-      self.f.write('            <td><a href="' + d + '.html">' + d[8:10] + '</a></td>\n')
+      dom = d[8:10]
+      if dom == '11' or dom == '21' or dom == '31':
+        self.f.write('</tr><tr>')
+      self.f.write('            <td><a href="' + d + '.html">' + dom + '</a></td>\n')
     self.f.write('          </tr>\n')
     self.f.write('        </table>\n')
     self.f.write('        <table style="border:1px solid black;">\n')
