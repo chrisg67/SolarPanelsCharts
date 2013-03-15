@@ -124,12 +124,21 @@ class WebPage:
           "WHERE time BETWEEN '"+day+" 00:00:00' AND '"+day+" 23:55:00';"
     i = 0
     total = 0.0
+    last_value = ( "", -1, -1 )
+    last_written = False
     for v in c.execute(cmd):
-      if i > 0:
+      if i > 0 and last_written:
         self.f.write(',\n')
+      last_written = False
       i = i + 1
       total = total + v[2]
-      self.writeDayValue(v, total)
+      if v[2] != last_value[2]:
+        self.writeDayValue(v, total)
+        last_written = True
+      last_value = v
+
+    if not last_written:
+        self.writeDayValue(last_value, total)
 
     self.f.write('    ]);\n')
     self.f.write('\n')
