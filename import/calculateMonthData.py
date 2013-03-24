@@ -22,6 +22,8 @@ def main():
           c.execute(maxd)
           maxv = c.fetchone()[0]
           insert = "INSERT INTO month_data VALUES ("+date+", "+str(maxv)+", "+str(sumv)+", 1);"
+          if c.execute('SELECT * from month_data WHERE date='+date+';').fetchone() is not None:
+            insert = 'UPDATE month_data SET total_power_kWh='+str(maxv)+',power_kWh='+str(sumv)+' WHERE date='+date+';'
           print insert
           conn.execute(insert)
   conn.commit()
