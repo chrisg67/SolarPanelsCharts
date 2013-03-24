@@ -1,0 +1,168 @@
+#!/usr/bin/python
+import smacsv
+import time
+import sys
+
+
+def calculateTotal(vals):
+  tot = 0.0
+  for v in vals:
+    tot = tot + float(v[2])/12.0
+  return tot
+
+def writeHeader(vals, f):
+  tot = calculateTotal(vals)
+  f.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n')
+  f.write('\n')
+  f.write('<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">\n')
+  f.write('\n')
+  f.write('<head>\n')
+  f.write('\n')
+  f.write('<title>Chris & Claire\'s Solar Panels</title>\n')
+  f.write('\n')
+  f.write('<meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />\n')
+  f.write('<meta name="author" content="Chris Goldsmith" />\n')
+  f.write('<meta name="description" content="A Collection of pages representing output from our panels" />\n')
+  f.write('<!--<meta name="keywords" content="keywords, here" />\n')
+  f.write('<meta name="robots" content="index, follow, noarchive" />\n')
+  f.write('<meta name="googlebot" content="noarchive" />-->\n')
+  f.write('\n')
+  f.write('<link rel="stylesheet" type="text/css" media="screen" href="css/screen.css" />\n')
+  f.write('\n')
+  f.write('</head>\n')
+  f.write('\n')
+  f.write('<body>\n')
+  f.write('\n')
+  f.write('<!-- wrap starts here -->\n')
+  f.write('<div id="wrap">\n')
+  f.write('\n')
+  f.write('  <!--header -->\n')
+  f.write('  <div id="header">\n')
+  f.write('\n')
+  f.write(' 	 <h1 id="logo-text"><a href="index.html" title="">Solar Panels</a></h1>\n')
+  f.write('    <p id="slogan">Feel the power...</p>\n')
+  f.write('\n')
+  f.write(' 	 <div  id="nav">\n')
+  f.write(' 		 <ul>\n')
+  f.write(' 			 <li><a href="index.html">Home</a></li>\n')
+  f.write(' 			 <li class="first" id="current"><a href="today.html">Today</a></li>\n')
+  f.write(' 			 <li><a href="blog.html">Blog</a></li>\n')
+  f.write(' 			 <li><a href="archives.html">Archives</a></li>\n')
+  f.write(' 			 <li><a href="index.html">Support</a></li>\n')
+  f.write(' 			 <li><a href="index.html">About</a></li>\n')
+  f.write(' 		 </ul>\n')
+  f.write(' 	 </div>\n')
+  f.write('\n')
+  f.write(' 	 <div id="header-image"></div>\n')
+  f.write('\n')
+  f.write('  <!--header ends-->\n')
+  f.write('  </div>\n')
+  f.write('\n')
+  f.write('  <!-- content -->\n')
+  f.write('  <div id="content-outer" class="clear"><div id="content-wrap">\n')
+  f.write(' 	 <div id="content">\n')
+  f.write('      <div class="left" style="width: 60%; float:left;">\n')
+  f.write('        <div class="entry">\n')
+  f.write('          <h3>Today\'s Power</h3>\n')
+  f.write('          <p>'+str(round(tot,3))+'KWh</p>\n')
+  f.write('<script type="text/javascript" src="https://www.google.com/jsapi"></script>\n')
+  f.write('<script type="text/javascript">\n')
+  f.write('  google.load("visualization", "1", {packages:["corechart"]});\n')
+  f.write('  google.setOnLoadCallback(drawChart);\n')
+  f.write('  function drawChart() {\n')
+  f.write('    var data = new google.visualization.DataTable();\n')
+  f.write('    data.addColumn(\'datetime\', \'Time\');\n')
+  f.write('    data.addColumn(\'number\', \'KW\');\n')
+  f.write('    data.addColumn(\'number\', \'KWh\');\n')
+  f.write('    data.addRows([\n')
+
+def writeValue(val, tot, f):
+  f.write('      [new Date('+time.strftime('%Y,%m-1,%d,%H,%M,%S', val[0])+'), '+str(round(val[2],3))+', '+str(round(tot,3))+']')
+
+def writeValues(vals, f):
+  tot = 0.0
+  for v in vals:
+    tot = tot + float(v[2])/12.0
+    writeValue(v, tot, f)
+    if v[0].tm_hour == 23 and v[0].tm_min == 55:
+      f.write('\n')
+    else:
+      f.write(',\n')
+
+def writeFooter(data, f):
+  f.write('    ]);\n')
+  f.write('\n')
+  f.write('    // Create and draw the visualization.\n')
+  f.write('    new google.visualization.LineChart(document.getElementById(\'chart_div\')).\n')
+  f.write('        draw(data, {vAxes: {0: {maxValue: 4},\n')
+  f.write('                            1: {maxValue: 30}},\n')
+  f.write('                    hAxis: {viewWindowMode: \'pretty\',\n')
+  f.write('                            maxValue: new Date('+time.strftime('%Y,%m-1,%d', data[0][0])+',23,59,00)},\n')
+  f.write('                    series: {0:{targetAxisIndex:0},\n')
+  f.write('                             1:{targetAxisIndex:1}}\n')
+  f.write('                   }\n')
+  f.write('            );\n')
+  f.write('  }\n')
+  f.write('\n')
+  f.write('</script>\n')
+  f.write('<div id="chart_div" style="width: 100%; height: 500px; position: relative; "></div>\n')
+  f.write('\n')
+  f.write('        </div>\n')
+  f.write('      </div>\n')
+  f.write(' 		 <div id="right">\n')
+  f.write('        <div class="sidemenu">\n')
+  f.write(' 				 <h3>Other Pages</h3>\n')
+  f.write(' 				 <ul>\n')
+  f.write(' 					 <li><a href="2012-10.html" title="Monthly Files">2012-10<br />\n')
+  f.write('                            <span>Monthly Report for October 2012</span></a>\n')
+  f.write('                        </li>\n')
+  f.write(' 					 <li><a href="2012-11.html" title="Monthly Files">2012-11<br />\n')
+  f.write('                            <span>Monthly Report for November 2012</span></a>\n')
+  f.write('                        </li>\n')
+  f.write(' 				 </ul>\n')
+  f.write(' 			 </div>\n')
+  f.write(' 		 </div>\n')
+  f.write(' 	 </div>\n')
+  f.write('\n')
+  f.write('  <!-- content end -->\n')
+  f.write('  </div></div>\n')
+  f.write('\n')
+  f.write('  <!-- footer-bottom starts -->\n')
+  f.write('  <div id="footer-bottom">\n')
+  f.write(' 	 <div class="bottom-left">\n')
+  f.write(' 		 <p>\n')
+  f.write(' 		 &copy; 2012 <strong>Chris Goldsmith</strong>&nbsp; &nbsp; &nbsp;\n')
+  f.write(' 		 Design by <a href="http://www.styleshout.com/">styleshout</a>\n')
+  f.write(' 		 </p>\n')
+  f.write(' 	 </div>\n')
+  f.write('\n')
+  f.write(' 	 <div class="bottom-right">\n')
+  f.write(' 		 <p>\n')
+  f.write(' 			 <a href="http://jigsaw.w3.org/css-validator/check/referer">CSS</a> |\n')
+  f.write(' 	   	 <a href="http://validator.w3.org/check/referer">XHTML</a>	|\n')
+  f.write(' 			 <a href="index.html">Home</a> |\n')
+  f.write(' 			 <a href="index.html">Sitemap</a> |\n')
+  f.write(' 			 <a href="index.html">RSS Feed</a>\n')
+  f.write(' 		 </p>\n')
+  f.write(' 	 </div>\n')
+  f.write('  <!-- footer-bottom ends -->\n')
+  f.write('  </div>\n')
+  f.write('\n')
+  f.write('<!-- wrap ends here -->\n')
+  f.write('</div>\n')
+  f.write('\n')
+  f.write('</body>\n')
+  f.write('</html>\n')
+      
+def main():
+  inputfile = "13 Cow Lane-20120915.csv"
+  if len(sys.argv) > 1:
+    inputfile = sys.argv[1]
+  data = smacsv.readDayFile(inputfile)
+  with open("todayV2.html", "w") as f:
+    writeHeader(data, f)
+    writeValues(data, f)
+    writeFooter(data, f)
+
+if __name__ == "__main__":
+  main()
