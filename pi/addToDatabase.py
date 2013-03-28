@@ -6,7 +6,7 @@ def main():
   p = re.compile("^(\d+)/(\d+)/(\d+) (\d+):(\d+):(\d+)\s+total=([0-9.]+)\s+Kwh\s+current=(\d+)\s+Watts\s+togo=\d+\s+i=\d+\s+crc=\d+")
   conn = sqlite3.connect('..\\dB\\test.db')
   c = conn.cursor()
-  with open('fullOutput', 'r') as f:
+  with open('output', 'r') as f:
     line = f.readline()
     while line:
       m = p.match(line)
