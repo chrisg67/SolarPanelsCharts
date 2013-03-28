@@ -12,6 +12,7 @@ def main():
     c.execute('SELECT time FROM five_minute_data WHERE power_kW = '+str(max_power_kW)+' AND '+timeConstraint)
     time = c.fetchone()[0]
     q='UPDATE day_data SET max_power_kW='+str(max_power_kW)+', max_time="'+time+'" WHERE date="'+date[0]+'";'
+    print q
     c.execute(q)
   conn.commit()
   conn.close()

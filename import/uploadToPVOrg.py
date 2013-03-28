@@ -9,6 +9,7 @@ def main():
   to_upload = c.execute('SELECT max_time,power_kWh,max_power_kW FROM day_data WHERE uploaded=0;').fetchall()
   for data in to_upload:
     url='http://pvoutput.org/service/r2/addoutput.jsp?key=d4c306fcdc6ad0158a5cb0a29eaf819ba127a833&sid=17596'
+    print data
     max_time = data[0]
     power_kWh = data[1]
     max_power_kW = data[2]
