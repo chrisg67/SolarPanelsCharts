@@ -12,8 +12,8 @@ def main():
       m = p.match(line)
       if m is not None:
         year = m.group(3)
-        month = m.group(2)
-        day = m.group(1)
+        month = '%02d' % int(m.group(2))
+        day = '%02d' % int(m.group(1))
         hour = m.group(4)
         minute = m.group(5)
         second = m.group(6)
