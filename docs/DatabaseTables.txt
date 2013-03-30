@@ -1,7 +1,7 @@
 Created as follows: -
 
 CREATE TABLE five_minute_data (
-time DATETIME, total_power_kWh FLOAT, power_kW FLOAT, power_kWh FLOAT,
+time DATETIME, total_power_kWh FLOAT, power_kW FLOAT, power_kWh FLOAT, processed INTEGER,
 PRIMARY KEY(time));
 CREATE TABLE day_data (
 date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER, max_power_kW FLOAT, max_time DATETIME, uploaded INTEGER,
