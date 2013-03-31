@@ -2,6 +2,7 @@ import sqlite3
 import sys
 import requests
 import time
+import re
 
 class sma_database:
   def __init__(self, filename):
@@ -31,7 +32,7 @@ class sma_database:
         sumd = c.execute("SELECT SUM(power_kWh) FROM five_minute_data " + where).fetchone()[0]
         maxd = c.execute("SELECT MAX(total_power_kWh) FROM five_minute_data " + where).fetchone()[0]
         count = c.execute("SELECT COUNT(power_kWh) FROM five_minute_data " + where).fetchone()[0]
-        max_power_kW = c.execute('SELECT MAX(power_kW) FROM five_minute_data WHERE '+where).fetchone()[0]
+        max_power_kW = c.execute('SELECT MAX(power_kW) FROM five_minute_data '+where).fetchone()[0]
         max_time = c.execute('SELECT time FROM five_minute_data WHERE power_kW = '+str(max_power_kW)+' AND '+timeConstraint).fetchone()[0]
         res = c.execute('SELECT complete,total_power_kWh,max_power_kW,max_time FROM day_data WHERE date="'+date+'";').fetchone()
         if res is None:
@@ -40,7 +41,7 @@ class sma_database:
             cmd = cmd + "1, "
           else:
             cmd = cmd + "0, "
-          cmd = cmd + str(max_power_kW) +", '"+max_time"', 0)"
+          cmd = cmd + str(max_power_kW) +", '"+max_time+"', 0, NULL);"
           print cmd
           c.execute(cmd)
         elif res[1] != maxd:
@@ -68,16 +69,16 @@ class sma_database:
     dates = c.execute('SELECT date FROM day_data WHERE processed IS NULL;').fetchall()
     last_month = ''
     for date in dates:
-      month = date[0:7]+'-01'
+      month = date[0][0:7]+'-01'
       if month != last_month:
-        where = "WHERE date BETWEEN " + month + \
-                " AND date("+month+",'+1 month', '-1 day');"
+        where = "WHERE date BETWEEN '" + month + \
+                "' AND date('"+month+"','+1 month', '-1 day');"
         sumd = c.execute("SELECT SUM(power_kWh) FROM day_data " + where).fetchone()[0]
         maxd = c.execute("SELECT MAX(total_power_kWh) FROM day_data " + where).fetchone()[0]
         count = c.execute("SELECT COUNT(power_kWh) FROM day_data " + where).fetchone()[0]
-        insert = "INSERT INTO month_data VALUES ("+month+", "+str(maxd)+", "+str(sumd)+", 1, null);"
-        if c.execute('SELECT * from month_data WHERE date='+month+';').fetchone() is not None:
-          insert = 'UPDATE month_data SET total_power_kWh='+str(maxv)+',power_kWh='+str(sumv)+', processed=NULL WHERE date='+month+';'
+        insert = "INSERT INTO month_data VALUES ('"+month+"', "+str(maxd)+", "+str(sumd)+", 1, null);"
+        if c.execute('SELECT * from month_data WHERE date="'+month+'";').fetchone() is not None:
+          insert = 'UPDATE month_data SET total_power_kWh='+str(maxd)+',power_kWh='+str(sumd)+', processed=NULL WHERE date="'+month+'";'
         print insert
         c.execute(insert)
         c.execute('UPDATE day_data SET processed=1 '+where);
@@ -88,16 +89,16 @@ class sma_database:
     dates = c.execute('SELECT date FROM month_data WHERE processed IS NULL;').fetchall()
     last_year = ''
     for date in dates:
-      year = date[0:4]+'-01-01'
+      year = date[0][0:4]+'-01-01'
       if year != last_year:
-        where = "WHERE date BETWEEN " + month + \
-                " AND date("+month+",'+1 year', '-1 day');"
+        where = "WHERE date BETWEEN '" + year + \
+                "' AND date('"+year+"','+1 year', '-1 day');"
         sumd = c.execute("SELECT SUM(power_kWh) FROM month_data " + where).fetchone()[0]
         maxd = c.execute("SELECT MAX(total_power_kWh) FROM month_data " + where).fetchone()[0]
         count = c.execute("SELECT COUNT(power_kWh) FROM month_data " + where).fetchone()[0]
         insert = "INSERT INTO year_data VALUES ("+year+", "+str(maxd)+", "+str(sumd)+", 1);"
         if c.execute('SELECT * from year_data WHERE date='+year+';').fetchone() is not None:
-          insert = 'UPDATE year_data SET total_power_kWh='+str(maxv)+',power_kWh='+str(sumv)+' WHERE date='+year+';'
+          insert = 'UPDATE year_data SET total_power_kWh='+str(maxd)+',power_kWh='+str(sumd)+' WHERE date='+year+';'
         print insert
         c.execute(insert)
         c.execute('UPDATE month_data SET processed=1 '+where);
@@ -144,7 +145,7 @@ class sma_database:
           second = m.group(6)
           total_power_kWh = m.group(7)
           power_kW = float(m.group(8))/1000
-          date = year+'-'+month+'-'+day+
+          date = year+'-'+month+'-'+day
           time = date+' '+hour+':'+minute+':'+second
           c.execute('SELECT * from five_minute_data WHERE time="'+time+'";')
           res = c.fetchone()
@@ -176,9 +177,9 @@ class sma_database:
 
 def main():
   with sma_database('..\\dB\\test.db') as db:
-    db.calculate_day_data()
-    db.calculate_month_data()
-    db.commit()
+    db.import_data('fullOutput')
+    db.calculate_all_data()
+    #db.commit()
 
 if __name__ == "__main__":
   main()
