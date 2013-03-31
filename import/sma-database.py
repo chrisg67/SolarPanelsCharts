@@ -177,9 +177,8 @@ class sma_database:
 
 def main():
   with sma_database('..\\dB\\test.db') as db:
-    db.import_data('fullOutput')
-    db.calculate_all_data()
-    #db.commit()
+    db.do_import('fullOutput')
+    db.commit()
 
 if __name__ == "__main__":
   main()
