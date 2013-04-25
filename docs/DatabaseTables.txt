@@ -4,10 +4,10 @@ CREATE TABLE five_minute_data (
 time DATETIME, total_power_kWh FLOAT, power_kW FLOAT, power_kWh FLOAT, processed INTEGER,
 PRIMARY KEY(time));
 CREATE TABLE day_data (
-date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER, max_power_kW FLOAT, max_time DATETIME, uploaded INTEGER, processed INTEGER
+date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER, max_power_kW FLOAT, max_time datetime, uploaded INTEGER DEFAULT 0, processed INTEGER,
 PRIMARY KEY(date));
 CREATE TABLE month_data (
-date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER, processed INTEGER
+date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER, processed INTEGER,
 PRIMARY KEY(date));
 CREATE TABLE year_data (
 date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER,
