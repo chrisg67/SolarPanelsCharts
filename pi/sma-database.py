@@ -43,7 +43,15 @@ class sma_database:
           cmd = cmd + str(max_power_kW) +", '"+max_time+"', 0, NULL);"
           c.execute(cmd)
         elif res[1] != maxd:
-          cmd = 'UPDATE day_data SET total_power_kWh='+str(maxd)+', power_kWh='+str(sumd)+', max_power_kW='+str(max_power_kW)+', max_time="'+max_time+'", processed=NULL WHERE date="'+date+'";'
+          cmd = 'UPDATE day_data SET total_power_kWh='+str(maxd)
+          cmd = cmd + ', power_kWh='+str(sumd)
+          cmd = cmd + ', max_power_kW='+str(max_power_kW)
+          cmd = cmd + ', max_time="'+max_time+'"'
+          if count >= 200:
+            cmd = cmd + ', complete=1'
+          else:
+            cmd = cmd + ', complete=0'
+          cmd = cmd + ', processed=NULL WHERE date="'+date+'";'
           c.execute(cmd)
         c.execute('UPDATE five_minute_data SET processed=1 '+where)
       last_date = date
