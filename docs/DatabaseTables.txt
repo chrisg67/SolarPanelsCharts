@@ -12,7 +12,9 @@ PRIMARY KEY(date));
 CREATE TABLE year_data (
 date DATE, total_power_kWh FLOAT, power_kWh FLOAT, complete INTEGER,
 PRIMARY KEY(date));
-
+CREATE TABLE settings (
+pvoutput_key TEXT, pvoutput_id TEXT
+);
 
 five_minute_data.power_kW
  - instantaneous power generated in these 5 minutes 
